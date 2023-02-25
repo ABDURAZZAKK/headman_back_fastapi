@@ -2,4 +2,4 @@
 
 start project
 
-<docker compose up>
+```docker compose up```
