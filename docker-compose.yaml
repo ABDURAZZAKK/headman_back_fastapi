@@ -1,0 +1,31 @@
+services:
+  # headman_fastapi:
+  #   container_name: headman_FastAPI
+  #   build: .
+  #   restart: always
+  #   ports:
+  #     - 8000:8000
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     - POSTGRES_HOST=HEADMAN_DB
+  #   command: >
+  #     bash -c "uvicorn main:app --host 0.0.0.0 --port 8000"
+  #   depends_on:
+  #     - db
+
+  db:
+    container_name: HEADMAN_DB
+    image: postgres:13
+    ports:
+      - 5433:5432
+    volumes:
+      - ./data:/var/lib/postgres/data
+    env_file:
+      - .env
+
+
+
+
+
+      
