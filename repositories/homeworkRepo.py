@@ -54,6 +54,7 @@ class HomeworkRepository(BaseRepository):
         values = {**new_homework.dict()}
         values.pop("id", None)
         values.pop("created_at", None)
+        values.pop("path_to_files", None)
         query = homeworks.update().where(homeworks.c.id==id).values(**values)
         await self.database.execute(query)
         new_homework.id = id

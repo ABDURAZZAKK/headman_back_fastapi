@@ -46,6 +46,28 @@ async def get_file(dir_path: int, file_name: str):
                     media_type="multipart/form-data")
 
 
+@router.delete('/file/{hw_id}/{file_name}')
+async def delete_file(hw_id: int,
+                      file_name: str,
+                      hwRepo: HomeworkRepository = Depends(get_homework_repository),
+                      current_user: User = Depends(get_current_user),):
+    hw = await hwRepo.get_by_id(hw_id)
+    if current_user and hw:
+        categoryRepo = get_category_repository()
+        category = await categoryRepo.get_by_id(hw.category_id)
+        if category:
+            groupRepo = get_group_repository()
+            group = await groupRepo.get_by_id(category.group_id)
+            if group and group.headman == current_user.id:
+
+                file_name = file_name.replace('\\','').replace('/','')
+                path = f'{hw.path_to_files}\\{file_name}'
+                if os.path.exists(path):
+                    os.remove(path)
+                    return JSONResponse({'status': status.HTTP_200_OK})
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='File not found')
+
+
 @router.post("/", response_model=Homework)
 async def create_hw(
         data: HomeworkIn,
@@ -93,7 +115,7 @@ async def attach_hw_file(
                             raise HTTPException(status.HTTP_403_FORBIDDEN)
                         file_service.save_file_context(hw.path_to_files, file_context, filename)
 
-                    return JSONResponse({'status': 'OK'})
+                    return JSONResponse({'status': status.HTTP_201_CREATED})
                 
                 except HTTPException:
                     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Your file is more than 10MB")
@@ -105,24 +127,24 @@ async def attach_hw_file(
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found homework")
 
 
-# @router.patch("/", response_model=Homework)
-# async def update_hw(
-#         hw_id: int,
-#         data: HomeworkIn,
-#         hwRepo: HomeworkRepository = Depends(get_homework_repository),
-#         current_user: User = Depends(get_current_user)):
+@router.patch("/", response_model=Homework)
+async def update_hw(
+        hw_id: int,
+        data: HomeworkIn,
+        hwRepo: HomeworkRepository = Depends(get_homework_repository),
+        current_user: User = Depends(get_current_user)):
     
-#     hw = await hwRepo.get_by_id(hw_id)
-#     if current_user and hw:
-#         categoryRepo = get_category_repository()
-#         category = await categoryRepo.get_by_id(hw.category_id)
-#         if category:
-#             groupRepo = get_group_repository()
-#             group = await groupRepo.get_by_id(category.group_id)
-#             if group and group.headman == current_user.id:
-#                 return await hwRepo.update(id=hw_id, d=data)
-#             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access is denied")
-#     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found homework")
+    hw = await hwRepo.get_by_id(hw_id)
+    if current_user and hw:
+        categoryRepo = get_category_repository()
+        category = await categoryRepo.get_by_id(hw.category_id)
+        if category:
+            groupRepo = get_group_repository()
+            group = await groupRepo.get_by_id(category.group_id)
+            if group and group.headman == current_user.id:
+                return await hwRepo.update(id=hw_id, d=data)
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access is denied")
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found homework")
     
 
 @router.delete("/")
