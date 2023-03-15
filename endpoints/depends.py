@@ -7,18 +7,25 @@ from repositories.categoryRepo import CategoryRepository
 from db.base import database
 from models.user import User
 
+from db.models import *
+from models.user import User
+from models.group import Group
+from models.category import Category
+from models.homework import Homework
+
+
 
 def get_user_repository() -> UserRepository:
-    return UserRepository(database)
+    return UserRepository(database, users, User)
 
 def get_group_repository() -> GroupRepository:
-    return GroupRepository(database)
+    return GroupRepository(database, groups, Group)
 
 def get_homework_repository() -> HomeworkRepository:
-    return HomeworkRepository(database)
+    return HomeworkRepository(database, homeworks, Homework)
 
 def get_category_repository() -> CategoryRepository:
-    return CategoryRepository(database)
+    return CategoryRepository(database, categories, Category)
 
 async def get_current_user(
     users: UserRepository = Depends(get_user_repository),

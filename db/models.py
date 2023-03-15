@@ -1,6 +1,5 @@
 from datetime import datetime
 import sqlalchemy
-from sqlalchemy.orm import relationship
 from .base import metadata
 
 
@@ -13,17 +12,29 @@ from .base import metadata
 # )
 
 
+studstat_accs = sqlalchemy.Table(
+    "studstat_accs",
+    metadata,
+    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True, autoincrement=True, unique=True),
+    sqlalchemy.Column("lastname", sqlalchemy.String),
+    sqlalchemy.Column("firstname", sqlalchemy.String),
+    sqlalchemy.Column("patr", sqlalchemy.String),
+    sqlalchemy.Column("nbook", sqlalchemy.Integer),
+    sqlalchemy.Column("user_id", sqlalchemy.ForeignKey('users.id', ondelete='SET NULL')),
+    sqlalchemy.Column("created_at", sqlalchemy.DateTime),
+    sqlalchemy.Column("updated_at", sqlalchemy.DateTime, default=datetime.utcnow)
+)
 
 users = sqlalchemy.Table(
     "users",
     metadata,
     sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True, autoincrement=True, unique=True),
-    sqlalchemy.Column("email", sqlalchemy.String, primary_key=True, unique=True),
+    sqlalchemy.Column("email", sqlalchemy.String, unique=True),
     sqlalchemy.Column("name", sqlalchemy.String),
     sqlalchemy.Column("hashed_password", sqlalchemy.String),
+    sqlalchemy.Column("studstat_acc_id", sqlalchemy.ForeignKey('studstat_accs.id', ondelete='CASCADE'), nullable=True),
     sqlalchemy.Column("created_at", sqlalchemy.DateTime),
     sqlalchemy.Column("updated_at", sqlalchemy.DateTime, default=datetime.utcnow)
-
 )
 
 groups = sqlalchemy.Table(

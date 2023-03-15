@@ -1,7 +1,7 @@
 from .models import (
                     groups,
                     users,
-                    # users_groups,
+                    studstat_accs,
                     categories,
                     homeworks,
                     )

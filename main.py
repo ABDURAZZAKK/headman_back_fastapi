@@ -4,6 +4,7 @@ from fastapi.responses import HTMLResponse
 
 from db.base import database
 from endpoints import users, auth, groups, categories, homeworks
+from endpoints.services_ import points
 
 
 
@@ -15,8 +16,9 @@ main_router.include_router(users.router, prefix="/users", tags=['users'])
 main_router.include_router(groups.router, prefix="/groups", tags=['groups'])
 main_router.include_router(categories.router, prefix="/categories", tags=['categories'])
 main_router.include_router(homeworks.router, prefix="/homeworks", tags=['homeworks'])
+main_router.include_router(points.router, prefix="/services", tags=['services'])
 
-app.include_router(main_router, prefix='/api/v1')
+app.include_router(main_router, prefix='/api')
 
 
 @app.on_event("startup")

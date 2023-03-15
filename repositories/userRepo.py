@@ -8,17 +8,6 @@ from .baseRepo import BaseRepository
 
 class UserRepository(BaseRepository):
 
-    async def get_all(self, limit: int = 100, skip: int = 0) -> list[User]:
-        query = users.select().limit(limit).offset(skip)
-        return await self.database.fetch_all(query=query)
-    
-    async def get_by_id(self, id: int) -> User | None:
-        query = users.select().where(users.c.id==id)
-        user_ = await self.database.fetch_one(query)
-        if user_ is None: 
-            return None
-        return user_
-
     async def get_by_email(self, email: str) -> User | None:
         query = users.select().where(users.c.email==email)
         user_ = await self.database.fetch_one(query)
@@ -60,10 +49,5 @@ class UserRepository(BaseRepository):
         new_user.id = id
         return new_user
             
-        
-    async def delete(self, id: int) -> None:
-        query = users.delete().where(users.c.id==id)
-        await self.database.execute(query)
-        return {'id': id}
          
         

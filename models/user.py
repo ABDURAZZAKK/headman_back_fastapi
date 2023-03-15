@@ -7,12 +7,14 @@ class User(BaseModel):
     name: str
     email: EmailStr
     hashed_password: str
+    studstat_acc_id: int|None
     created_at: datetime
     updated_at: datetime
 
 class UserIn(BaseModel):
     name: str
     email: EmailStr
+    studstat_acc_id: int|None
     password: constr(min_length=8)
     password2: str
 
