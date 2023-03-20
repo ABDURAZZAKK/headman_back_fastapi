@@ -4,9 +4,10 @@ from fastapi import APIRouter, Depends,  UploadFile, File, HTTPException, status
 from fastapi.responses import FileResponse, JSONResponse
 
 from repositories.homeworkRepo import HomeworkRepository
-from .depends import get_current_user, get_homework_repository, get_category_repository, get_group_repository
+from .depends import get_current_user, get_homework_repository, get_category_repository
+from .utils import add_creater_field_to_dict, delete_none_from_pydantic_model
 from models.user import User
-from models.homework import Homework, HomeworkIn
+from models.homework import Homework, HomeworkIn, HomeworkUpdate
 from serviсes import file_service
 from core.config import HW_ATTACHED_PATH
 
@@ -53,19 +54,14 @@ async def delete_file(hw_id: int,
                       current_user: User = Depends(get_current_user),):
     hw = await hwRepo.get_by_id(hw_id)
     if current_user and hw:
-        categoryRepo = get_category_repository()
-        category = await categoryRepo.get_by_id(hw.category_id)
-        if category:
-            groupRepo = get_group_repository()
-            group = await groupRepo.get_by_id(category.group_id)
-            if group and group.headman == current_user.id:
+        if hw.creater == current_user.id:
 
-                file_name = file_name.replace('\\','').replace('/','')
-                path = f'{hw.path_to_files}\\{file_name}'
-                if os.path.exists(path):
-                    os.remove(path)
-                    return JSONResponse({'status': status.HTTP_200_OK})
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='File not found')
+            file_name = file_name.replace('\\','').replace('/','')
+            path = f'{hw.path_to_files}\\{file_name}'
+            if os.path.exists(path):
+                os.remove(path)
+                return JSONResponse({'status': status.HTTP_200_OK})
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='File not found')
 
 
 @router.post("/", response_model=Homework)
@@ -77,11 +73,8 @@ async def create_hw(
     categoryRepo = get_category_repository()
     category = await categoryRepo.get_by_id(data.category_id)
     if current_user and category:
-        groupRepo = get_group_repository()
-        group = await groupRepo.get_by_id(category.group_id)
-        if group and group.headman == current_user.id:
-            path = file_service.create_timestamp_dir()
-            data.path_to_files = path
+        if category.creater == current_user.id:
+            data = add_creater_field_to_dict(data.dict(), current_user.id)
             return await hwRepo.create(d=data)
         
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access is denied")
@@ -95,55 +88,38 @@ async def attach_hw_file(
         hwRepo: HomeworkRepository = Depends(get_homework_repository),
         current_user: User = Depends(get_current_user),
         ):
+    
     hw = await hwRepo.get_by_id(hw_id)
     if current_user and hw:
-        categoryRepo = get_category_repository()
-        category = await categoryRepo.get_by_id(hw.category_id)
-        if category:
-            groupRepo = get_group_repository()
-            group = await groupRepo.get_by_id(category.group_id)
-            if group and group.headman == current_user.id:
-                try:
-
-                    for file in files:
-                        mb = 1024*1024
-                        filename = file.filename
-                        file_context = await file.read(11*mb)
-                        if len(file_context) >= 10*mb:
-                            
-                            file_service.delete_hw_attached_files(hw.path_to_files)
-                            raise HTTPException(status.HTTP_403_FORBIDDEN)
-                        file_service.save_file_context(hw.path_to_files, file_context, filename)
-
-                    return JSONResponse({'status': status.HTTP_201_CREATED})
-                
-                except HTTPException:
-                    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Your file is more than 10MB")
-                except:
-                    file_service.delete_hw_attached_files(hw.path_to_files)
-                    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='File upload error')
-                
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access is denied")
+        if hw.creater == current_user.id:
+            if hw.path_to_files is None:
+                await hwRepo.update(hw.id, d = {'path_to_files': file_service.create_timestamp_dir()})
+                hw = await hwRepo.get_by_id(hw_id)
+            return await file_service.save_files(files, hw)
+            
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access is denied")
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found homework")
 
 
 @router.patch("/", response_model=Homework)
 async def update_hw(
         hw_id: int,
-        data: HomeworkIn,
+        data: HomeworkUpdate,
         hwRepo: HomeworkRepository = Depends(get_homework_repository),
         current_user: User = Depends(get_current_user)):
     
+    if data.category_id is not None:
+        categoryRepo = get_category_repository()
+        category = await categoryRepo.get_by_id(data.category_id)
+        if not category or  category.creater != current_user.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access is denied")
+    
     hw = await hwRepo.get_by_id(hw_id)
     if current_user and hw:
-        categoryRepo = get_category_repository()
-        category = await categoryRepo.get_by_id(hw.category_id)
-        if category:
-            groupRepo = get_group_repository()
-            group = await groupRepo.get_by_id(category.group_id)
-            if group and group.headman == current_user.id:
-                return await hwRepo.update(id=hw_id, d=data)
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access is denied")
+        if hw.creater == current_user.id:
+            data = delete_none_from_pydantic_model(data)
+            return await hwRepo.update(id=hw_id, d=data)
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access is denied")
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found homework")
     
 
@@ -155,13 +131,8 @@ async def delete_hw(
 
     hw = await hwRepo.get_by_id(hw_id)
     if current_user and hw:
-        categoryRepo = get_category_repository()
-        category = await categoryRepo.get_by_id(hw.category_id)
-        if category:
-            groupRepo = get_group_repository()
-            group = await groupRepo.get_by_id(category.group_id)
-            if group and group.headman == current_user.id:
-                file_service.rmdir_hw_attached_files(hw.path_to_files)
-                return await hwRepo.delete(id=hw_id)
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access is denied")
+        if hw.creater == current_user.id:
+            file_service.rmdir_hw_attached_files(hw.path_to_files)
+            return await hwRepo.delete(id=hw_id)
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access is denied")
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found homework")

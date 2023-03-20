@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from repositories.groupRepo import GroupRepository
 from .depends import get_current_user, get_group_repository
+from .utils import add_creater_field_to_dict
 from models.user import User
 from models.group import Group, GroupIn
 
@@ -31,7 +32,8 @@ async def create_group(
         groupRepo: GroupRepository = Depends(get_group_repository),
         current_user: User = Depends(get_current_user)):
     
-    if current_user and data.headman == current_user.id:
+    if current_user:
+        data = add_creater_field_to_dict(data.dict(), current_user.id)
         return await groupRepo.create(d=data)
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access is denied")
     
@@ -46,7 +48,8 @@ async def update_user(
 
     group = await groupRepo.get_by_id(group_id)
     if current_user and group: 
-        if data.headman == current_user.id:
+        if group.creater == current_user.id:
+            data = add_creater_field_to_dict(data.dict(), current_user.id)
             return await groupRepo.update(id=group_id, d=data)
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access is denied")
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found group")
@@ -60,7 +63,7 @@ async def delete_user(
         current_user: User = Depends(get_current_user)):
     
     group = await groupRepo.get_by_id(group_id)
-    if current_user and group and group.headman == current_user.id:
+    if current_user and group and group.creater == current_user.id:
         return await groupRepo.delete(id=group_id)
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found group")
     

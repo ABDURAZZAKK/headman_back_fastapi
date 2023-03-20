@@ -31,23 +31,15 @@ class UserRepository(BaseRepository):
         new_user.id = await self.database.execute(query)
         return new_user
 
-    async def update(self, id: int, d: UserIn) -> User | None:
-        new_user = User(
-            id=0,
-            name=d.name,
-            email=d.email,
-            hashed_password=hash_password(d.password2),
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow(),
-        )
+    async def update(self, id: int, d: dict) -> User | None:
+        if 'password2' in d:
+            d['hashed_password'] = hash_password(d['password2'])
+            del d['password2']
+            del d['password']
+        d['updated_at'] = datetime.utcnow()
 
-        values = {**new_user.dict()}
-        values.pop('id', None)
-        values.pop("created_at", None)
-        query = users.update().where(users.c.id==id).values(**values)
-        await self.database.execute(query)
-        new_user.id = id
-        return new_user
+        query = users.update().where(users.c.id==id).values(**d)
+        return await self.database.execute(query)
             
          
         

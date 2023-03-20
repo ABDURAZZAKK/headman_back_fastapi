@@ -29,7 +29,7 @@ class BaseRepository:
 
     async def create(self, d: BaseModel) -> BaseModel:
         new = self.return_model(
-            **d.dict(),
+            **dict(d),
             id=0,
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow(),
@@ -41,24 +41,12 @@ class BaseRepository:
         new.id = await self.database.execute(query)
         return new
 
-    async def update(self, id: int, d: BaseModel) -> BaseModel | None:
-        new = self.return_model(
-            **d.dict(),
-            id=0,
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow(),
-        )
-
-        values = {**new.dict()}
-        values.pop("id", None)
-        values.pop("created_at", None)
-        query = self.db_model.update().where(self.db_model.c.id==id).values(**values)
-        await self.database.execute(query)
-        new.id = id 
-        return new
-            
-        
+    async def update(self, id: int, d: dict) -> BaseModel | None:
+        d['updated_at'] = datetime.utcnow()
+        query = self.db_model.update().where(self.db_model.c.id==id).values(**d)
+        return await self.database.execute(query)
+         
+         
     async def delete(self, id: int) -> None:
         query = self.db_model.delete().where(self.db_model.c.id==id)
-        await self.database.execute(query)
-        return {'id':id}
+        return await self.database.execute(query)

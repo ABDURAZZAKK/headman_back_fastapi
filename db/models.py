@@ -42,7 +42,7 @@ groups = sqlalchemy.Table(
     metadata,
     sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True, autoincrement=True, unique=True),
     sqlalchemy.Column("name", sqlalchemy.String),
-    sqlalchemy.Column("headman", sqlalchemy.ForeignKey('users.id', ondelete='CASCADE')),
+    sqlalchemy.Column("creater", sqlalchemy.ForeignKey('users.id', ondelete='CASCADE')),
     sqlalchemy.Column("created_at", sqlalchemy.DateTime),
     sqlalchemy.Column("updated_at", sqlalchemy.DateTime, default=datetime.utcnow)
 )
@@ -53,6 +53,7 @@ categories = sqlalchemy.Table(
     sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True, autoincrement=True, unique=True),
     sqlalchemy.Column("name", sqlalchemy.String),
     sqlalchemy.Column("group_id",sqlalchemy.ForeignKey('groups.id', ondelete='CASCADE')),
+    sqlalchemy.Column("creater", sqlalchemy.ForeignKey('users.id', ondelete='CASCADE')),
     sqlalchemy.Column("created_at", sqlalchemy.DateTime),
     sqlalchemy.Column("updated_at", sqlalchemy.DateTime, default=datetime.utcnow)
 )
@@ -63,8 +64,9 @@ homeworks = sqlalchemy.Table(
     sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True, autoincrement=True, unique=True),
     sqlalchemy.Column("task", sqlalchemy.String),
     sqlalchemy.Column("status", sqlalchemy.String),
-    sqlalchemy.Column("path_to_files", sqlalchemy.String),
+    sqlalchemy.Column("path_to_files", sqlalchemy.String, nullable=True),
     sqlalchemy.Column("category_id", sqlalchemy.ForeignKey('categories.id', ondelete='CASCADE')),
+    sqlalchemy.Column("creater", sqlalchemy.ForeignKey('users.id', ondelete='CASCADE')),
     sqlalchemy.Column("created_at", sqlalchemy.DateTime),
     sqlalchemy.Column("updated_at", sqlalchemy.DateTime, default=datetime.utcnow)
 )

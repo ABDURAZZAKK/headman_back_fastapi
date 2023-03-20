@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from repositories.userRepo import UserRepository
 from .depends import get_current_user, get_user_repository
-from models.user import User, UserIn
+from models.user import User, UserIn, UserUpdate
+from .utils import delete_none_from_pydantic_model
 
 
 router = APIRouter()
@@ -34,13 +35,14 @@ async def create_user(
 @router.patch("/", response_model=User)
 async def update_user(
     u_id: int,
-    data: UserIn,
+    data: UserUpdate,
     userRepo: UserRepository = Depends(get_user_repository),
     current_user: User = Depends(get_current_user)):
 
     user = await userRepo.get_by_id(u_id)
     if user: 
         if user.email == current_user.email:
+            data = delete_none_from_pydantic_model(data)
             return await userRepo.update(id=u_id, d=data)
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found user")
     

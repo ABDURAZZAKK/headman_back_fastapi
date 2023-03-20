@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, validator, constr
+from pydantic import BaseModel, EmailStr, validator, constr, root_validator
 
 
 class User(BaseModel):
@@ -16,7 +16,7 @@ class UserIn(BaseModel):
     email: EmailStr
     studstat_acc_id: int|None
     password: constr(min_length=8)
-    password2: str
+    password2: constr(min_length=8)
 
     @validator("password2")
     def password_match(cls, v, values, **kwargs):
@@ -24,8 +24,16 @@ class UserIn(BaseModel):
             raise ValueError("password don't match")
         return v
 
-class UserOut(BaseModel):
-    name: str
-    email: EmailStr
-    created_at: datetime
-    updated_at: datetime
+class UserUpdate(BaseModel):
+    name: str | None
+    email: EmailStr | None
+    studstat_acc_id: int|None
+    password: constr(min_length=8) | None
+    password2: constr(min_length=8) | None
+
+    @root_validator
+    def password_match(cls,  values):
+        pw1, pw2 = values.get('password'), values.get('password2')
+        if pw1 != pw2:
+            raise ValueError('passwords do not match')
+        return values
