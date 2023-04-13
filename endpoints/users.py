@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from repositories.userRepo import UserRepository
+from repositories import UserRepository
 from .depends import get_current_user, get_user_repository
-from models.user import User, UserIn, UserUpdate
+from models import User, UserIn, UserUpdate
 from .utils import delete_none_from_pydantic_model
 
 

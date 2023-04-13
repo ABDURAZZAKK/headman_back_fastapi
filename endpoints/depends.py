@@ -1,17 +1,12 @@
 from fastapi import Depends, HTTPException, status
 from core.security import JWTBearer, decode_access_token
-from repositories.userRepo import UserRepository
-from repositories.groupRepo import GroupRepository
-from repositories.homeworkRepo import HomeworkRepository
-from repositories.categoryRepo import CategoryRepository
-from db.base import database
-from models.user import User
 
+from db.base import database
 from db.models import *
-from models.user import User
-from models.group import Group
-from models.category import Category
-from models.homework import Homework
+
+from repositories import UserRepository, GroupRepository, CategoryRepository, HomeworkRepository
+from models import User, Group, Category, Homework
+
 
 
 

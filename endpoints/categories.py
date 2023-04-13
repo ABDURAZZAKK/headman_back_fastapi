@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from repositories.categoryRepo import CategoryRepository
+from repositories import CategoryRepository
 from .depends import get_current_user, get_category_repository, get_group_repository
 from .utils import add_creater_field_to_dict, delete_none_from_pydantic_model
-from models.user import User
-from models.category import Category, CategoryIn, CategoryUpdate
+from models import User, Category, CategoryIn, CategoryUpdate
+
 
 
 router = APIRouter()

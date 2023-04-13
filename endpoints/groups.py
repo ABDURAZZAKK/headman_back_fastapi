@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from repositories.groupRepo import GroupRepository
+from repositories import GroupRepository
 from .depends import get_current_user, get_group_repository
 from .utils import add_creater_field_to_dict
-from models.user import User
-from models.group import Group, GroupIn
+from models import User, Group, GroupIn
+
 
 
 router = APIRouter()
