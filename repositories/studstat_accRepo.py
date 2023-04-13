@@ -6,7 +6,7 @@ from models.studstat_acc import StudstatAcc, StudstatAccIn
 from db.models import studstat_accs
 from .baseRepo import BaseRepository
 
-from serviсes import points_parser
+from serviсes import studstat_parser
 
 class StudstatAccRepository(BaseRepository):
 
@@ -26,7 +26,7 @@ class StudstatAccRepository(BaseRepository):
             "Input.nbook": data.nbook,
             }
         
-        response = points_parser.registration(data)
+        response = studstat_parser.registration(data)
 
         return response
 

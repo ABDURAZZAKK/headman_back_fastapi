@@ -11,7 +11,7 @@ data = {"Input.lastname": "Магомедов",
         "Input.nbook": "11514"}
 
 
-def registration(data):
+def auth(data):
     session = requests.Session()
     
     soup = BeautifulSoup(session.get(url).text, "html.parser")
@@ -65,6 +65,6 @@ def get_point_table_resp(session, semester_id=None):
 
 
 def get_point_table_html(data):
-    session = registration(data)
+    session = auth(data)
     return get_point_table_resp(session).text
 
