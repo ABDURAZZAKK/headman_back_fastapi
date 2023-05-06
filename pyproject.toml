@@ -1,0 +1,2 @@
+[tool.pyptest.ini_options]
+asyncio_mode="auto"

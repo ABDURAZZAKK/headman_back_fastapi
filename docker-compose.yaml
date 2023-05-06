@@ -16,13 +16,25 @@ services:
 
   db:
     container_name: HEADMAN_DB
-    image: postgres:13
+    image: postgres:14.1-alpine
     ports:
       - 5433:5432
     volumes:
       - ./data:/var/lib/postgres/data
     env_file:
       - .env
+
+  db_test:
+    container_name: "db_test"
+    image: postgres:14.1-alpine
+    restart: always
+    environment:
+      - POSTGRES_HOST=localhost
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=HEADMAN_TEST_DB
+    ports:
+      - "5434:5432"
 
 
 

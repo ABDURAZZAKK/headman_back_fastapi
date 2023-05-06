@@ -1,10 +1,10 @@
 from .models import (
-                    groups,
-                    users,
-                    studstat_accs,
-                    categories,
-                    homeworks,
-                    )
+    groups,
+    users,
+    studstat_accs,
+    categories,
+    homeworks,
+)
 from .base import metadata, engine
 
 
