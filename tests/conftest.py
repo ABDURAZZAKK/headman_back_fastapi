@@ -1,80 +1,60 @@
-from typing import Any
-from typing import Generator
+import asyncio
+from typing import AsyncGenerator
 
+import pytest, pytest_asyncio
+from fastapi.testclient import TestClient
+from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 
-import pytest
-from sqlalchemy import create_engine, MetaData
-from starlette.testclient import TestClient
-from databases import Database
 
 from core.config import TEST_DATABASE_URL
-from db.models import (
-                    groups,
-                    users,
-                    studstat_accs,
-                    categories,
-                    homeworks,
-                    )
 
 from main import app
-from main import database
-
-from repositories import UserRepository, GroupRepository, CategoryRepository, HomeworkRepository
-from models import User, Group, Category, Homework
-
-CLEAN_TABLES = [
-    users,
-    groups, 
-    categories, 
-    homeworks,
-]
+from db.models import metadata
+from db.base import get_async_session
 
 
-test_database = Database(TEST_DATABASE_URL)
-metadata = MetaData()
-engine = create_engine(
-    TEST_DATABASE_URL,
+engine_test = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
+async_session_maker = sessionmaker(
+    engine_test, class_=AsyncSession, expire_on_commit=False
 )
-
-metadata.create_all(bind=engine)
-
+metadata.bind = engine_test
 
 
-
-@pytest.fixture(scope="session", autouse=True)
-def run_migrations():
-    metadata.create_all(bind=engine)
-
+async def override_get_async_session() -> AsyncGenerator[AsyncSession, None]:
+    async with async_session_maker() as session:
+        yield session
 
 
-@pytest.fixture(scope="function", autouse=True)
-async def clean_tables():
-    for table_for_cleaning in CLEAN_TABLES:
-        await table_for_cleaning.query.delete()
+app.dependency_overrides[get_async_session] = override_get_async_session
 
 
+@pytest_asyncio.fixture(autouse=True, scope="module")
+async def prepare_database():
+    async with engine_test.begin() as conn:
+        await conn.run_sync(metadata.create_all)
+    yield
+    async with engine_test.begin() as conn:
+        await conn.run_sync(metadata.drop_all)
 
-@pytest.fixture(scope="function")
-async def client() -> Generator[TestClient, Any, None]:
-    app.dependency_overrides[database] = test_database
-    with TestClient(app) as client:
-        yield client
+
+# SETUP
+@pytest.fixture(scope="session")
+def event_loop(request):
+    """Create an instance of the default event loop for each test case."""
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
 
 
+client = TestClient(app)
 
-@pytest.fixture
-def get_user_repository(database: Database) -> UserRepository:
-    return UserRepository(database, users, User)
 
-@pytest.fixture
-def get_group_repository(database: Database) -> GroupRepository:
-    return GroupRepository(database, groups, Group)
+@pytest_asyncio.fixture(scope="session")
+async def ac() -> AsyncGenerator[AsyncClient, None]:
+    async with AsyncClient(app=app, base_url="http://localhost:8000/api/") as ac:
+        yield ac
 
-@pytest.fixture
-def get_homework_repository(database: Database) -> HomeworkRepository:
-    return HomeworkRepository(database, homeworks, Homework)
-
-@pytest.fixture
-def get_category_repository(database: Database) -> CategoryRepository:
-    return CategoryRepository(database, categories, Category)
 

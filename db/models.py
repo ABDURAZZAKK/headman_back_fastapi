@@ -1,72 +1,79 @@
 from datetime import datetime
-import sqlalchemy
-from .base import metadata
+import sqlalchemy as sa
 
 
 
-# users_groups = sqlalchemy.Table(
-#     'users_groups',
-#     metadata,
-#     sqlalchemy.Column('user_id', sqlalchemy.ForeignKey('users.id'), primary_key=True),
-#     sqlalchemy.Column('group_id', sqlalchemy.ForeignKey('groups.id'), primary_key=True)
-# )
+metadata = sa.MetaData()
 
 
-studstat_accs = sqlalchemy.Table(
+studstat_accs = sa.Table(
     "studstat_accs",
     metadata,
-    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True, autoincrement=True, unique=True),
-    sqlalchemy.Column("lastname", sqlalchemy.String),
-    sqlalchemy.Column("firstname", sqlalchemy.String),
-    sqlalchemy.Column("patr", sqlalchemy.String),
-    sqlalchemy.Column("nbook", sqlalchemy.Integer),
-    sqlalchemy.Column("user_id", sqlalchemy.ForeignKey('users.id', ondelete='SET NULL')),
-    sqlalchemy.Column("created_at", sqlalchemy.DateTime),
-    sqlalchemy.Column("updated_at", sqlalchemy.DateTime, default=datetime.utcnow)
+    sa.Column("id", sa.Integer, primary_key=True, autoincrement=True, unique=True),
+    sa.Column("lastname", sa.String),
+    sa.Column("firstname", sa.String),
+    sa.Column("patr", sa.String),
+    sa.Column("nbook", sa.Integer),
+    sa.Column(
+        "user_id",
+        sa.Integer,
+        sa.ForeignKey("users.id", ondelete="SET NULL"),
+    ),
+    sa.Column("created_at", sa.DateTime),
+    sa.Column("updated_at", sa.DateTime, default=datetime.utcnow),
 )
 
-users = sqlalchemy.Table(
+
+users = sa.Table(
     "users",
     metadata,
-    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True, autoincrement=True, unique=True),
-    sqlalchemy.Column("email", sqlalchemy.String, unique=True),
-    sqlalchemy.Column("name", sqlalchemy.String),
-    sqlalchemy.Column("hashed_password", sqlalchemy.String),
-    sqlalchemy.Column("studstat_acc_id", sqlalchemy.ForeignKey('studstat_accs.id', ondelete='CASCADE'), nullable=True),
-    sqlalchemy.Column("created_at", sqlalchemy.DateTime),
-    sqlalchemy.Column("updated_at", sqlalchemy.DateTime, default=datetime.utcnow)
+    sa.Column("id", sa.Integer, primary_key=True, autoincrement=True, unique=True),
+    sa.Column("email", sa.String, unique=True),
+    sa.Column("name", sa.String),
+    sa.Column("hashed_password", sa.String),
+    # sa.Column(
+    #     "studstat_acc_id",
+    #     sa.Integer,
+    #     sa.ForeignKey("studstat_accs.id", ondelete="CASCADE"),
+    #     nullable=True,
+    # ),
+    sa.Column("created_at", sa.DateTime),
+    sa.Column("updated_at", sa.DateTime, default=datetime.utcnow),
 )
 
-groups = sqlalchemy.Table(
+
+groups = sa.Table(
     "groups",
     metadata,
-    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True, autoincrement=True, unique=True),
-    sqlalchemy.Column("name", sqlalchemy.String),
-    sqlalchemy.Column("creater", sqlalchemy.ForeignKey('users.id', ondelete='CASCADE')),
-    sqlalchemy.Column("created_at", sqlalchemy.DateTime),
-    sqlalchemy.Column("updated_at", sqlalchemy.DateTime, default=datetime.utcnow)
+    sa.Column("id", sa.Integer, primary_key=True, autoincrement=True, unique=True),
+    sa.Column("name", sa.String),
+    sa.Column("creater", sa.ForeignKey("users.id", ondelete="CASCADE")),
+    sa.Column("created_at", sa.DateTime),
+    sa.Column("updated_at", sa.DateTime, default=datetime.utcnow),
 )
 
-categories = sqlalchemy.Table(
+
+categories = sa.Table(
     "categories",
     metadata,
-    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True, autoincrement=True, unique=True),
-    sqlalchemy.Column("name", sqlalchemy.String),
-    sqlalchemy.Column("group_id",sqlalchemy.ForeignKey('groups.id', ondelete='CASCADE')),
-    sqlalchemy.Column("creater", sqlalchemy.ForeignKey('users.id', ondelete='CASCADE')),
-    sqlalchemy.Column("created_at", sqlalchemy.DateTime),
-    sqlalchemy.Column("updated_at", sqlalchemy.DateTime, default=datetime.utcnow)
+    sa.Column("id", sa.Integer, primary_key=True, autoincrement=True, unique=True),
+    sa.Column("name", sa.String),
+    sa.Column("group_id", sa.ForeignKey("groups.id", ondelete="CASCADE")),
+    sa.Column("creater", sa.ForeignKey("users.id", ondelete="CASCADE")),
+    sa.Column("created_at", sa.DateTime),
+    sa.Column("updated_at", sa.DateTime, default=datetime.utcnow),
 )
 
-homeworks = sqlalchemy.Table(
+
+homeworks = sa.Table(
     "homeworks",
     metadata,
-    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True, autoincrement=True, unique=True),
-    sqlalchemy.Column("task", sqlalchemy.String),
-    sqlalchemy.Column("status", sqlalchemy.String),
-    sqlalchemy.Column("path_to_files", sqlalchemy.String, nullable=True),
-    sqlalchemy.Column("category_id", sqlalchemy.ForeignKey('categories.id', ondelete='CASCADE')),
-    sqlalchemy.Column("creater", sqlalchemy.ForeignKey('users.id', ondelete='CASCADE')),
-    sqlalchemy.Column("created_at", sqlalchemy.DateTime),
-    sqlalchemy.Column("updated_at", sqlalchemy.DateTime, default=datetime.utcnow)
+    sa.Column("id", sa.Integer, primary_key=True, autoincrement=True, unique=True),
+    sa.Column("task", sa.String),
+    sa.Column("status", sa.String),
+    sa.Column("path_to_files", sa.String, nullable=True),
+    sa.Column("category_id", sa.ForeignKey("categories.id", ondelete="CASCADE")),
+    sa.Column("creater", sa.ForeignKey("users.id", ondelete="CASCADE")),
+    sa.Column("created_at", sa.DateTime),
+    sa.Column("updated_at", sa.DateTime, default=datetime.utcnow),
 )
