@@ -1,5 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, EmailStr, validator, constr, root_validator
+from .studstat_acc import StudstatAcc
 
 
 class User(BaseModel):
@@ -7,15 +8,18 @@ class User(BaseModel):
     name: str
     email: EmailStr
     hashed_password: str
-    studstat_acc_id: int | None
+    # studstat_account: StudstatAcc | None
     created_at: datetime
     updated_at: datetime
+
+    class Config:
+        orm_mode = True
 
 
 class UserIn(BaseModel):
     name: str
     email: EmailStr
-    studstat_acc_id: int | None
+    # studstat_account: StudstatAcc | None
     password: constr(min_length=8)
     password2: constr(min_length=8)
 
@@ -29,9 +33,12 @@ class UserIn(BaseModel):
 class UserUpdate(BaseModel):
     name: str | None
     email: EmailStr | None
-    studstat_acc_id: int | None
+    # studstat_account: StudstatAcc | None
     password: constr(min_length=8) | None
     password2: constr(min_length=8) | None
+
+    class Config:
+        orm_mode = True
 
     @root_validator
     def password_match(cls, values):

@@ -20,6 +20,9 @@ class Homework(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+    class Config:
+        orm_mode = True
+
 
 class HomeworkIn(BaseModel):
     task: str

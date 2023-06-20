@@ -11,6 +11,9 @@ class Category(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+    class Config:
+        orm_mode = True
+
 class CategoryIn(BaseModel):
     name: str
     group_id: int

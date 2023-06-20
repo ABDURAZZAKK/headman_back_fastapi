@@ -2,7 +2,6 @@ import uvicorn
 from fastapi import FastAPI, APIRouter
 from fastapi.responses import HTMLResponse
 
-from db.base import database
 from endpoints import users, auth, groups, categories, homeworks
 from endpoints.services_ import points
 
@@ -20,14 +19,14 @@ main_router.include_router(points.router, prefix="/services", tags=["services"])
 app.include_router(main_router, prefix="/api")
 
 
-@app.on_event("startup")
-async def startup():
-    await database.connect()
+# @app.on_event("startup")
+# async def startup():
+#     await database.connect()
 
 
-@app.on_event("shutdown")
-async def shutdown():
-    await database.disconnect()
+# @app.on_event("shutdown")
+# async def shutdown():
+#     await database.disconnect()
 
 
 @app.get("/", response_class=HTMLResponse)

@@ -18,7 +18,7 @@ async def get_groups(
     return await groupRepo.get_all(limit=limit, skip=skip)
 
 
-@router.get("/{group_id}", response_model=Group)
+@router.get("/", response_model=Group)
 async def get_group(
         group_id: int,
         groupRepo: GroupRepository = Depends(get_group_repository)):

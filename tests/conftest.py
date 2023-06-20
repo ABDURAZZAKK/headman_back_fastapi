@@ -1,28 +1,19 @@
-from typing import Any
+import asyncio
 from typing import AsyncGenerator
 
-
-import asyncio
-import pytest
-import pytest_asyncio
-from httpx import AsyncClient
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-
-from sqlalchemy.pool import NullPool
+import pytest, pytest_asyncio
 from fastapi.testclient import TestClient
-from databases import Database
+from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
+
 
 from core.config import TEST_DATABASE_URL
-from db.models import (
-    groups,
-    users,
-    studstat_accs,
-    categories,
-    homeworks,
-)
+
 from main import app
-from db.base import metadata, database
+from db.models import metadata
+from db.base import get_async_session
 
 
 engine_test = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
@@ -37,10 +28,10 @@ async def override_get_async_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
-app.dependency_overrides[database] = Database(TEST_DATABASE_URL)
+app.dependency_overrides[get_async_session] = override_get_async_session
 
 
-@pytest_asyncio.fixture(autouse=True, scope="session")
+@pytest_asyncio.fixture(autouse=True, scope="module")
 async def prepare_database():
     async with engine_test.begin() as conn:
         await conn.run_sync(metadata.create_all)
@@ -58,7 +49,12 @@ def event_loop(request):
     loop.close()
 
 
+client = TestClient(app)
+
+
 @pytest_asyncio.fixture(scope="session")
 async def ac() -> AsyncGenerator[AsyncClient, None]:
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    async with AsyncClient(app=app, base_url="http://localhost:8000/api/") as ac:
         yield ac
+
+

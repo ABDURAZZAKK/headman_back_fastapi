@@ -1,45 +1,52 @@
 from datetime import datetime
-
+import sqlalchemy as sa
 from core.security import hash_password
 from models.user import User, UserIn
 from db.models import users
+
 from .baseRepo import BaseRepository
 
 
 class UserRepository(BaseRepository):
-
     async def get_by_email(self, email: str) -> User | None:
-        query = users.select().where(users.c.email==email)
-        user_ = await self.database.fetch_one(query)
-        if user_ is None: 
+        query = sa.select(users).where(users.c.email == email)
+        _ = await self.session.execute(query)
+        _ = _.fetchone()
+
+        if _ is None:
             return None
-        return user_
-    
-    async def create(self, d: UserIn) -> User:
+        return _
+
+    async def create(self, d: UserIn | dict) -> User:
+        d = dict(**dict(d))
         new_user = User(
             id=0,
-            name=d.name,
-            email=d.email,
-            hashed_password=hash_password(d.password2),
+            name=d["name"],
+            email=d["email"],
+            hashed_password=hash_password(d["password2"]),
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow(),
         )
 
         values = {**new_user.dict()}
-        values.pop('id', None)
-        query = users.insert().values(**values)
-        new_user.id = await self.database.execute(query)
+        values.pop("id", None)
+        query = sa.insert(users).values(**values).returning(users.c.id)
+        user_id = await self.session.execute(query)
+        new_user.id = user_id.fetchone()[0]
+        await self.session.commit()
+
         return new_user
 
-    async def update(self, id: int, d: dict) -> User | None:
-        if 'password2' in d:
-            d['hashed_password'] = hash_password(d['password2'])
-            del d['password2']
-            del d['password']
-        d['updated_at'] = datetime.utcnow()
+    async def update(self, id: int, d: UserIn | dict) -> User | None:
+        d = dict(**dict(d))
 
-        query = users.update().where(users.c.id==id).values(**d)
-        return await self.database.execute(query)
-            
-         
-        
+        if "password2" in d:
+            d["hashed_password"] = hash_password(d["password2"])
+            del d["password2"]
+            del d["password"]
+        d["updated_at"] = datetime.utcnow()
+
+        query = sa.update(users).where(users.c.id == id).values(**d)
+        await self.session.execute(query)
+        await self.session.commit()
+        return {"status": "success"}
