@@ -2,7 +2,6 @@ from datetime import datetime
 import sqlalchemy as sa
 
 
-
 metadata = sa.MetaData()
 
 
@@ -18,7 +17,9 @@ studstat_accs = sa.Table(
         "user_id",
         sa.Integer,
         sa.ForeignKey("users.id", ondelete="SET NULL"),
+        unique=True,
     ),
+    sa.Column("cookie", sa.String, nullable=True),
     sa.Column("created_at", sa.DateTime),
     sa.Column("updated_at", sa.DateTime, default=datetime.utcnow),
 )

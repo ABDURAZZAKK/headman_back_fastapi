@@ -8,7 +8,6 @@ class User(BaseModel):
     name: str
     email: EmailStr
     hashed_password: str
-    # studstat_account: StudstatAcc | None
     created_at: datetime
     updated_at: datetime
 
@@ -19,7 +18,6 @@ class User(BaseModel):
 class UserIn(BaseModel):
     name: str
     email: EmailStr
-    # studstat_account: StudstatAcc | None
     password: constr(min_length=8)
     password2: constr(min_length=8)
 
@@ -33,7 +31,6 @@ class UserIn(BaseModel):
 class UserUpdate(BaseModel):
     name: str | None
     email: EmailStr | None
-    # studstat_account: StudstatAcc | None
     password: constr(min_length=8) | None
     password2: constr(min_length=8) | None
 

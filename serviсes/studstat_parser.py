@@ -1,70 +1,75 @@
-import requests
+import httpx
 from bs4 import BeautifulSoup
-import json
+from models import StudstatAcc
+from repositories import StudstatAccRepository
+from models import StudstatAcc
+
+url = "http://studstat.dgu.ru"
 
 
+async def auth(data: StudstatAcc) -> httpx.AsyncClient:
+    data = data
+    session = httpx.AsyncClient(follow_redirects=True)
+    resp = await session.get(url)
+    soup = BeautifulSoup(resp.text, "html.parser")
+    request_data = {
+        "Input.lastname": data.lastname,
+        "Input.firstname": data.firstname,
+        "Input.patr": data.patr,
+        "Input.nbook": data.nbook,
+        "__RequestVerificationToken": soup.find(
+            "input", attrs={"name": "__RequestVerificationToken"}
+        )["value"],
+    }
 
-url = 'http://studstat.dgu.ru'
-data = {"Input.lastname": "Магомедов",
-        "Input.firstname": "Абдуразак",
-        "Input.patr": "Абдурахманович",
-        "Input.nbook": "11514"}
-
-
-def auth(data):
-    session = requests.Session()
-    
-    soup = BeautifulSoup(session.get(url).text, "html.parser")
-
-    data["__RequestVerificationToken"] = soup.find('input', attrs={'name':'__RequestVerificationToken'})['value']
-    session.post(f"{url}/Account/Login?ReturnUrl=%2F",data=data)
+    await session.post(f"{url}/Account/Login?ReturnUrl=%2F", data=request_data)
 
     return session
 
 
-# def seve_cookies(cookies):
-#     cookies_dict = [
-#         {"domain": key.domain, "name": key.name, "path":key.path, "value": key.value}
-#          for key in cookies
-#     ]
-#     with open('t.txt', 'w', encoding='utf-8') as f:
-#         for i in cookies_dict:
-#             f.write(str(i)+'\n')
+async def _get_data(user_id: int, studstatRepo: StudstatAccRepository) -> StudstatAcc:
+    return await studstatRepo.get_by_user_id(user_id)
 
 
-# def get_cookies():
-#     cookies = []
-#     try:
-#         with open('t.txt', 'r', encoding='utf-8') as f:
-#             for i in f.readlines():
-#                 cookies.append(json.loads(i.replace("'",'"')))
-#     except:
-#         cookies = []
-#     return cookies
+async def _save_cookies(
+    data: StudstatAcc, cookies: httpx.Cookies, studstatRepo: StudstatAccRepository
+) -> None:
+    print(cookies)
+    for name, value in cookies.items():
+        if name == ".AspNetCore.Cookies":
+            await studstatRepo.update(data.id, {"cookie": value})
 
 
-# def get_session():
-#     cookies = get_cookies()
-#     if cookies:
-#         session = requests.Session()
-#         for c in cookies:
-#             session.cookies.set(**c)
-#         if session.get(f'{url}/Progress').url == f'{url}/Progress':
-#             return session
-    
-#     seve_cookies(registration(data).cookies)
-#     return get_session()
+async def _get_session(data: StudstatAcc, studstatRepo: StudstatAccRepository):
+    if data.cookie:
+        session = httpx.AsyncClient(follow_redirects=True)
+        session.cookies.set(".AspNetCore.Cookies", data.cookie)
+        resp = await session.get(f"{url}/Progress")
+        if resp.url == f"{url}/Progress":
+            return session
+    session = await auth(data)
+    session_cookie = session.cookies
+    await _save_cookies(data, session_cookie, studstatRepo)
+    return _get_session(data, studstatRepo)
 
 
-def get_point_table_resp(session, semester_id=None):
-    soup = BeautifulSoup(session.get(f'{url}/Progress').text, "html.parser")
+async def _get_point_table_resp(session: httpx.AsyncClient, semester_id=None) -> str:
+    resp = await session.get(f"{url}/Progress")
+    soup = BeautifulSoup(resp.text, "html.parser")
     if not semester_id:
-        semester_id = soup.find('option', attrs={"selected":"selected"})['value']
-    stud_id = str(soup.find_all('script', attrs={"type":"text/javascript"})[3]).split("var stud_id = ")[1].split(';')[0]
-    return session.get(f"{url}/Partial/Progress?stud_id={stud_id}&sess_id={semester_id}")
+        semester_id = soup.find("option", attrs={"selected": "selected"})["value"]
+    stud_id = (
+        str(soup.find_all("script", attrs={"type": "text/javascript"})[3])
+        .split("var stud_id = ")[1]
+        .split(";")[0]
+    )
+    return await session.get(
+        f"{url}/Partial/Progress?stud_id={stud_id}&sess_id={semester_id}"
+    )
 
 
-def get_point_table_html(data):
-    session = auth(data)
-    return get_point_table_resp(session).text
-
+async def get_point_table_html(user_id, studstatRepo: StudstatAccRepository) -> str:
+    data = await _get_data(user_id, studstatRepo)
+    session = await _get_session(data, studstatRepo)
+    resp = await _get_point_table_resp(session)
+    return resp.text

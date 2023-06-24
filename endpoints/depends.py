@@ -9,8 +9,9 @@ from repositories import (
     GroupRepository,
     CategoryRepository,
     HomeworkRepository,
+    StudstatAccRepository,
 )
-from models import User, Group, Category, Homework
+from models import User, Group, Category, Homework, StudstatAcc
 
 
 async def get_user_repository(
@@ -19,16 +20,28 @@ async def get_user_repository(
     return UserRepository(session, users, User)
 
 
-async def get_group_repository() -> GroupRepository:
-    return GroupRepository(await get_async_session(), groups, Group)
+async def get_group_repository(
+    session: AsyncSession = Depends(get_async_session),
+) -> GroupRepository:
+    return GroupRepository(session, groups, Group)
 
 
-async def get_homework_repository() -> HomeworkRepository:
-    return HomeworkRepository(await get_async_session(), homeworks, Homework)
+async def get_homework_repository(
+    session: AsyncSession = Depends(get_async_session),
+) -> HomeworkRepository:
+    return HomeworkRepository(session, homeworks, Homework)
 
 
-async def get_category_repository() -> CategoryRepository:
-    return CategoryRepository(await get_async_session(), categories, Category)
+async def get_category_repository(
+    session: AsyncSession = Depends(get_async_session),
+) -> CategoryRepository:
+    return CategoryRepository(session, categories, Category)
+
+
+async def get_studstat_acc_repository(
+    session: AsyncSession = Depends(get_async_session),
+) -> StudstatAccRepository:
+    return StudstatAccRepository(session, studstat_accs, StudstatAcc)
 
 
 async def get_current_user(

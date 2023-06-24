@@ -1,8 +1,8 @@
 """init
 
-Revision ID: 5153ff471994
+Revision ID: c042b9b82c6d
 Revises: 
-Create Date: 2023-05-07 19:16:18.831917
+Create Date: 2023-06-24 19:08:55.620059
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '5153ff471994'
+revision = 'c042b9b82c6d'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -46,11 +46,13 @@ def upgrade() -> None:
     sa.Column('patr', sa.String(), nullable=True),
     sa.Column('nbook', sa.Integer(), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('cookie', sa.String(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('id')
+    sa.UniqueConstraint('id'),
+    sa.UniqueConstraint('user_id')
     )
     op.create_table('categories',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),

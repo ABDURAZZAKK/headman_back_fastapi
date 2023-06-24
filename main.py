@@ -2,8 +2,7 @@ import uvicorn
 from fastapi import FastAPI, APIRouter
 from fastapi.responses import HTMLResponse
 
-from endpoints import users, auth, groups, categories, homeworks
-from endpoints.services_ import points
+from endpoints import users, auth, groups, categories, homeworks, points
 
 
 app = FastAPI(title="Headman FastAPI")
@@ -14,7 +13,7 @@ main_router.include_router(users.router, prefix="/users", tags=["users"])
 main_router.include_router(groups.router, prefix="/groups", tags=["groups"])
 main_router.include_router(categories.router, prefix="/categories", tags=["categories"])
 main_router.include_router(homeworks.router, prefix="/homeworks", tags=["homeworks"])
-main_router.include_router(points.router, prefix="/services", tags=["services"])
+main_router.include_router(points.router, prefix="/services", tags=["points"])
 
 app.include_router(main_router, prefix="/api")
 
