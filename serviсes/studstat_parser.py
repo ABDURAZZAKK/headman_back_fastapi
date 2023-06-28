@@ -8,7 +8,6 @@ url = "http://studstat.dgu.ru"
 
 
 async def auth(data: StudstatAcc) -> httpx.AsyncClient:
-    data = data
     session = httpx.AsyncClient(follow_redirects=True)
     resp = await session.get(url)
     soup = BeautifulSoup(resp.text, "html.parser")

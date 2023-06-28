@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import HTMLResponse
 from repositories import StudstatAccRepository
-from models import StudstatAcc, StudstatAccIn, User
+from models import StudstatAccIn, User
 from .depends import get_studstat_acc_repository, get_current_user
 from serviсes import studstat_parser
 
@@ -15,11 +14,6 @@ async def get_points_table(
     current_user: User = Depends(get_current_user),
 ):
     return await studstat_parser.get_point_table_html(current_user.id, studstatRepo)
-
-
-# @router.get("/points")
-# async def get_points():
-#     return HTMLResponse(studstat_parser.get_point_table_html())
 
 
 @router.post("/create_acc")
