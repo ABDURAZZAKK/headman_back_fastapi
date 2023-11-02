@@ -4,7 +4,7 @@ import sqlalchemy as sa
 from pydantic import BaseModel
 from datetime import datetime
 
-M = TypeVar("M", bound=BaseModel)
+M = TypeVar("M", bound=BaseModel, covariant=True)
 
 
 class BaseRepository:
