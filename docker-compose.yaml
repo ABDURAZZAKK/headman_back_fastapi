@@ -1,6 +1,6 @@
 services:
-  # headman_fastapi:
-  #   container_name: headman_FastAPI
+  # web:
+  #   container_name: web
   #   build: .
   #   restart: always
   #   ports:
@@ -8,36 +8,39 @@ services:
   #   env_file:
   #     - .env
   #   environment:
-  #     - POSTGRES_HOST=HEADMAN_DB
+  #     - POSTGRES_HOST=db
   #   command: >
   #     bash -c "uvicorn main:app --host 0.0.0.0 --port 8000"
   #   depends_on:
   #     - db
 
   db:
-    container_name: HEADMAN_DB
-    image: postgres:14.1-alpine
+    container_name: db
+    image: postgres:latest
     ports:
       - 5433:5432
     volumes:
-      - ./data:/var/lib/postgres/data
+      - db:/var/lib/postgresql/data
     env_file:
       - .env
 
-  db_test:
-    container_name: "db_test"
-    image: postgres:14.1-alpine
-    restart: always
-    environment:
-      - POSTGRES_HOST=localhost
-      - POSTGRES_USER=root
-      - POSTGRES_PASSWORD=root
-      - POSTGRES_DB=HEADMAN_TEST_DB
-    ports:
-      - "5434:5432"
+  # db_test:
+  #   container_name: "test_db"
+  #   image: postgres:latest
+  #   restart: always
+  #   environment:
+  #     - POSTGRES_DB=HEADMAN_TEST_DB
+  #   ports:
+  #     - "5434:5432"
+  #   volumes:
+  #     - test_db:/var/lib/postgresql/data
 
 
+volumes:
+  db:
+    driver: local
 
+  test_db:
+    driver: local
+    
 
-
-      
