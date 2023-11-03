@@ -4,7 +4,7 @@ from models import StudstatAcc
 from repositories import StudstatAccRepository
 from models import StudstatAcc
 
-url = "http://studstat.dgu.ru"
+url = "https://studstat.dgu.ru"
 
 
 async def auth(data: StudstatAcc) -> httpx.AsyncClient:
@@ -49,7 +49,7 @@ async def _get_session(data: StudstatAcc, studstatRepo: StudstatAccRepository):
     session = await auth(data)
     session_cookie = session.cookies
     await _save_cookies(data, session_cookie, studstatRepo)
-    return _get_session(data, studstatRepo)
+    return await _get_session(data, studstatRepo)
 
 
 async def _get_point_table_resp(session: httpx.AsyncClient, semester_id=None) -> str:

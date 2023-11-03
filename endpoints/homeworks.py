@@ -7,7 +7,7 @@ from repositories import HomeworkRepository
 from .depends import get_current_user, get_homework_repository, get_category_repository
 from .utils import add_creater_field_to_dict, dict_without_null_from_pydantic_model
 from models import User, Homework, HomeworkIn, HomeworkUpdate
-from serviсes import file_service
+from services import file_service
 from core.config import HW_ATTACHED_PATH
 
 router = APIRouter()

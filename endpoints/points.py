@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from repositories import StudstatAccRepository
 from models import StudstatAccIn, User
 from .depends import get_studstat_acc_repository, get_current_user
-from serviсes import studstat_parser
+from services import studstat_parser
 
 
 router = APIRouter()
@@ -25,7 +25,7 @@ async def create_studstat_acc(
     session = await studstat_parser.auth(data)
     resp = await session.get(f"{studstat_parser.url}/Progress")
     if resp.url == f"{studstat_parser.url}/Progress":
-        data.user_id = current_user.id
+        data = data.dict() + {"user_id": current_user.id}
         return await studstatAccRepo.create(data)
     raise HTTPException(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
